@@ -1,0 +1,25 @@
+[package]
+name = "tortoise"
+description = "A rule-based fractal generator based on turtle graphics & Lindenmayer systems."
+version = "0.1.0"
+authors = ["Tim Baccaert <timbaccaert@protonmail.com>"]
+edition = "2018"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.58"
+js-sys = "0.3.35"
+
+[dependencies.web-sys]
+version = "0.3.35"
+features = [
+    'CanvasRenderingContext2d',
+    'Document',
+    'Element',
+    'HtmlCanvasElement',
+    'Window',
+]
+

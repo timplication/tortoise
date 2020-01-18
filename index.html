@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="author" content="Tim Baccaert">
+        <meta name="description" content="A rule-based fractal generator based on turtle graphics & Lindenmayer systems.">
+        <meta name="keywords" content="fractals,rule-based,generator,turtle,graphics,lindenmayer,system">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Tortoise</title>
+    </head>
+
+    <body>
+        <canvas id="canvas" width="500" height="500">
+        </canvas>
+        <script type="module">
+            import tortoise from './pkg/tortoise.js';
+            tortoise();
+        </script>
+    </body>
+</html>
