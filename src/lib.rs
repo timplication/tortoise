@@ -1,31 +1,57 @@
+use std::rc::Rc;
+use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, window};
+
+fn req_frame(f: &Closure<dyn FnMut()>) {
+    window()
+        .expect("no global `window` exists")
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+}
+
+fn canvas(html_id: &str) -> HtmlCanvasElement {
+    let document = window().unwrap().document().unwrap();
+    let canvas = document.get_element_by_id(html_id).unwrap();
+
+    canvas.dyn_into::<HtmlCanvasElement>()
+        .map_err(|_| ())
+        .unwrap()
+}
+
+fn context(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
+    canvas.get_context("2d")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap()
+}
+
+fn setup_loop(mut update: Box<dyn FnMut()>) {
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
+
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        update();
+        req_frame(f.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+    req_frame(g.borrow().as_ref().unwrap());
+}
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("canvas").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas
-        .dyn_into::<web_sys::HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap();
+    let canvas = canvas("canvas");
+    let ctx = context(&canvas);
+    let mut x = 0.0;
 
-    let context = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()
-        .unwrap();
+    setup_loop(Box::new(move || {
+        ctx.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
 
-    // test just to see if we can draw stuff
-    context.set_fill_style(&"rgb(255,0,0)".into());
-    context.fill_rect(200.0, 50.0, 100.0, 100.0);
+        ctx.set_fill_style(&"rgb(255,0,0)".into());
+        ctx.fill_rect(x, 0.0, 50.0, 50.0);
 
-    context.set_fill_style(&"rgb(0,255,0)".into());
-    context.fill_rect(400.0, 50.0, 100.0, 100.0);
-
-    context.set_fill_style(&"rgb(0,0,255)".into());
-    context.fill_rect(600.0, 50.0, 100.0, 100.0);
-
-    context.fill();
+        x = (((x + 5.0) as u32) % canvas.width()) as f64;
+    }));
 }
