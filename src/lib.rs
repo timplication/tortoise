@@ -16,59 +16,25 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::rc::Rc;
-use std::cell::RefCell;
+mod canvas_engine;
+
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
+use canvas_engine::{CanvasEngine, Canvas, Context};
 
-fn get_canvas(elem_id: &str) -> Option<HtmlCanvasElement> {
-    web_sys::window()?
-        .document()?
-        .get_element_by_id(elem_id)?
-        .dyn_into::<HtmlCanvasElement>()
-        .ok()
+struct State(f64);
+
+fn update(state: &mut State, canvas: &mut Canvas, _: &mut Context) {
+    state.0 = (((state.0 + 5.0) as u32) % canvas.width()) as f64;
 }
 
-fn get_context(canvas: &HtmlCanvasElement) -> Option<CanvasRenderingContext2d> {
-    canvas.get_context("2d")
-        .ok()
-        .flatten()?
-        .dyn_into::<CanvasRenderingContext2d>()
-        .ok()
-}
-
-fn req_frame(f: &Closure<dyn FnMut()>) {
-    web_sys::window()
-        .unwrap()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("failed to request animation frame");
-}
-
-fn update(mut actions: Box<dyn FnMut()>) {
-    let f = Rc::new(RefCell::new(None));
-    let g = f.clone();
-
-    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        actions();
-        req_frame(f.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
-
-    req_frame(g.borrow().as_ref().unwrap());
+fn render(state: &mut State, canvas: &mut Canvas, context: &mut Context) {
+    context.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
+    context.set_fill_style(&"rgb(255,0,0)".into());
+    context.fill_rect(state.0, 0.0, 50.0, 50.0);
 }
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    let canvas = get_canvas("canvas").expect("unable to find canvas element");
-    let ctx = get_context(&canvas).expect("unable to get 2d context");
-    let mut x = 0.0;
-
-    update(Box::new(move || {
-        ctx.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
-
-        ctx.set_fill_style(&"rgb(255,0,0)".into());
-        ctx.fill_rect(x, 0.0, 50.0, 50.0);
-
-        x = (((x + 5.0) as u32) % canvas.width()) as f64;
-    }));
+    let engine = CanvasEngine::new("canvas", State(0.0), update, render);
+    engine.start();
 }
