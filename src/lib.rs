@@ -1,39 +1,56 @@
+/* Tortoise: A rule-based fractal generator based on
+ * turtle graphics & Lindenmayer systems.
+ * Copyright (C) 2020 Tim Baccaert <timbaccaert@protonmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 use std::rc::Rc;
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, window};
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
+
+fn get_canvas(elem_id: &str) -> Option<HtmlCanvasElement> {
+    web_sys::window()?
+        .document()?
+        .get_element_by_id(elem_id)?
+        .dyn_into::<HtmlCanvasElement>()
+        .ok()
+}
+
+fn get_context(canvas: &HtmlCanvasElement) -> Option<CanvasRenderingContext2d> {
+    canvas.get_context("2d")
+        .ok()
+        .flatten()?
+        .dyn_into::<CanvasRenderingContext2d>()
+        .ok()
+}
 
 fn req_frame(f: &Closure<dyn FnMut()>) {
-    window()
-        .expect("no global `window` exists")
+    web_sys::window()
+        .unwrap()
         .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
+        .expect("failed to request animation frame");
 }
 
-fn canvas(html_id: &str) -> HtmlCanvasElement {
-    let document = window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id(html_id).unwrap();
-
-    canvas.dyn_into::<HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap()
-}
-
-fn context(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
-    canvas.get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap()
-}
-
-fn setup_loop(mut update: Box<dyn FnMut()>) {
+fn update(mut actions: Box<dyn FnMut()>) {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        update();
+        actions();
         req_frame(f.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
 
@@ -42,11 +59,11 @@ fn setup_loop(mut update: Box<dyn FnMut()>) {
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    let canvas = canvas("canvas");
-    let ctx = context(&canvas);
+    let canvas = get_canvas("canvas").expect("unable to find canvas element");
+    let ctx = get_context(&canvas).expect("unable to get 2d context");
     let mut x = 0.0;
 
-    setup_loop(Box::new(move || {
+    update(Box::new(move || {
         ctx.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
 
         ctx.set_fill_style(&"rgb(255,0,0)".into());

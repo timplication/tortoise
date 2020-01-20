@@ -4,7 +4,7 @@ description = "A rule-based fractal generator based on turtle graphics & Lindenm
 version = "0.1.0"
 authors = ["Tim Baccaert <timbaccaert@protonmail.com>"]
 edition = "2018"
-license = "MIT"
+license = "AGPL-3.0-or-later"
 
 [profile.release]
 lto = true

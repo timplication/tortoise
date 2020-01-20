@@ -1,5 +1,7 @@
 # Tortoise
 
+![License](https://img.shields.io/github/license/timbaccaert/tortoise?style=flat-square)
+
 A rule-based fractal generator based on turtle graphics &amp; Lindenmayer
 systems.
 
@@ -25,3 +27,22 @@ during development, to avoid CORS issues and manual reloads.
 live-server --watch=pkg,index.html
 ```
 
+## License
+
+Tortoise: A rule-based fractal generator based on turtle graphics & Lindenmayer systems.
+
+Copyright (C) 2020 Tim Baccaert <[timbaccaert@protonmail.com](mailto:timbaccaert@protonmail.com)>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see
+<[https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)>.
