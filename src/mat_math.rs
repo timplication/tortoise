@@ -16,54 +16,41 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use crate::vec_math::Vec2;
+use std::ops::Mul;
 
 #[derive(Clone, Copy)]
-pub struct Vec2 {
-    pub x: f64,
-    pub y: f64
+pub struct Mat2 {
+    a11: f64,
+    a12: f64,
+    a21: f64,
+    a22: f64
 }
 
-impl Vec2 {
-    pub fn new(x: f64, y:f64) -> Vec2 {
-        Vec2 { x, y }
+impl Mat2 {
+    pub fn new(a11: f64, a12: f64, a21: f64, a22: f64) -> Mat2 {
+        Mat2 { a11, a12, a21, a22 }
     }
 }
 
-impl Add for Vec2 {
+impl Mul<Vec2> for Mat2 {
+    type Output = Vec2;
+
+    fn mul(self, v: Vec2) -> Vec2 {
+        Vec2::new(
+            self.a11 * v.x + self.a12 * v.y,
+            self.a21 * v.x + self.a22 * v.y
+        )
+    }
+}
+
+impl Mul<f64> for Mat2 {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y
-        }
-    }
-}
-
-impl AddAssign for Vec2 {
-    fn add_assign(&mut self, other: Self) {
-        *self = Self {
-            x: self.x + other.x,
-            y: self.y + other.y
-        };
-    }
-}
-
-impl Mul<f64> for Vec2 {
-    type Output = Self;
-
-    fn mul(self, scalar: f64) -> Self {
-        Self {
-            x: self.x * scalar,
-            y: self.y * scalar
-        }
-    }
-}
-
-impl MulAssign<f64> for Vec2 {
-    fn mul_assign(&mut self, scalar: f64) {
-        self.x *= scalar;
-        self.y *= scalar;
+    fn mul(self, scalar: f64) -> Mat2 {
+        Mat2::new(
+            self.a11 * scalar, self.a12 * scalar,
+            self.a21 * scalar, self.a22 * scalar
+        )
     }
 }

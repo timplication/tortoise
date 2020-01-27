@@ -18,38 +18,52 @@
 
 mod canvas_engine;
 mod vec_math;
+mod mat_math;
 mod turtle;
 
 use wasm_bindgen::prelude::*;
 use canvas_engine::{CanvasEngine, Canvas, Context};
+use vec_math::Vec2;
 use turtle::Turtle;
-use std::f64::consts::*;
 
 struct State {
     turtle: Turtle,
-    amt: usize
+    program: Vec<char>,
+    iterations: usize
 }
 
 fn update(state: &mut State, _: &mut Canvas, _: &mut Context) {
-    if state.amt % 2 == 0 {
-        state.turtle.turn(0.0);
-    } else {
-        state.turtle.turn(FRAC_PI_4);
+    if state.iterations < 2 {
+        state.program.reverse();
+        state.turtle.load(state.program.clone(), 20.0);
+
+        let mut next_prog: Vec<char> = Vec::new();
+        while let Some(sym) = state.program.pop() {
+            match sym {
+                'A'  => next_prog.append(&mut vec!['B','-','A','-','B']),
+                'B'  => next_prog.append(&mut vec!['A','+','B','+','A']),
+                s @ _ => next_prog.push(s)
+            }
+        }
+
+        state.program = next_prog;
     }
 
-    state.turtle.forward(1.0);
-    state.amt += 1;
+    state.iterations += 1;
 }
 
-fn render(state: &mut State, _: &mut Canvas, ctx: &mut Context) {
-    ctx.set_line_width(25.0);
+fn render(state: &mut State, cvs: &mut Canvas, ctx: &mut Context) {
+    // ctx.clear_rect(0.0, 0.0, cvs.width() as f64, cvs.height() as f64);
+    ctx.set_line_width(1.0);
     ctx.set_stroke_style(&"rgb(255,0,0)".into());
     state.turtle.draw(ctx);
 }
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    let state = State { turtle: Turtle::new(), amt: 0 };
+    let turtle = Turtle::new(Vec2::new(500.0, 500.0), 0.0);
+    let program = vec!['A'];
+    let state = State { turtle, program, iterations: 0 };
     let engine = CanvasEngine::new("canvas", state, update, render);
     engine.start();
 }
