@@ -16,40 +16,38 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod canvas_engine;
-mod vec_math;
-mod turtle;
+use crate::vec_math::Vec2;
+use crate::canvas_engine::Context;
 
-use wasm_bindgen::prelude::*;
-use canvas_engine::{CanvasEngine, Canvas, Context};
-use turtle::Turtle;
-use std::f64::consts::*;
-
-struct State {
-    turtle: Turtle,
-    amt: usize
+pub struct Turtle {
+    position: Vec2,
+    origin: Vec2,
+    orientation: Vec2
 }
 
-fn update(state: &mut State, _: &mut Canvas, _: &mut Context) {
-    if state.amt % 2 == 0 {
-        state.turtle.turn(0.0);
-    } else {
-        state.turtle.turn(FRAC_PI_4);
+impl Turtle {
+    pub fn new() -> Turtle {
+        Turtle {
+            position: Vec2::new(0.0, 0.0),
+            origin: Vec2::new(0.0, 0.0),
+            orientation: Vec2::new(0.0, 0.0)
+        }
     }
 
-    state.turtle.forward(1.0);
-    state.amt += 1;
-}
+    pub fn turn(&mut self, radians: f64) {
+        self.orientation = Vec2::new(radians.cos(), radians.sin());
+    }
 
-fn render(state: &mut State, _: &mut Canvas, ctx: &mut Context) {
-    ctx.set_line_width(25.0);
-    ctx.set_stroke_style(&"rgb(255,0,0)".into());
-    state.turtle.draw(ctx);
-}
+    pub fn forward(&mut self, distance: f64) {
+        self.origin = self.position;
+        self.position += self.orientation;
+        self.position *= distance;
+    }
 
-#[wasm_bindgen(start)]
-pub fn start() {
-    let state = State { turtle: Turtle::new(), amt: 0 };
-    let engine = CanvasEngine::new("canvas", state, update, render);
-    engine.start();
+    pub fn draw(&self, ctx: &mut Context) {
+        ctx.begin_path();
+        ctx.move_to(self.origin.x, self.origin.y);
+        ctx.line_to(self.position.x, self.position.y);
+        ctx.stroke();
+    }
 }
