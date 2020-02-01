@@ -5,6 +5,11 @@
 A rule-based fractal generator based on turtle graphics &amp; Lindenmayer
 systems.
 
+## Screenshot
+
+![Sierpiński's Triangle](https://raw.githubusercontent.com/tbaccaer/tortoise/master/img/sierpinski.png "Sierpiński's Triangle")
+> Sierpiński's Triangle approximated using a [Sierpiński arrowhead curve L-system](https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Arrowhead_curve)
+
 ## Building
 
 This project compiles to a WebAssembly target using Rust's
