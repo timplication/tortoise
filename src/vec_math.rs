@@ -17,6 +17,7 @@
  */
 
 use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::fmt;
 
 #[derive(Clone, Copy)]
 pub struct Vec2 {
@@ -27,6 +28,12 @@ pub struct Vec2 {
 impl Vec2 {
     pub fn new(x: f64, y:f64) -> Vec2 {
         Vec2 { x, y }
+    }
+}
+
+impl fmt::Display for Vec2 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}, {}]", self.x, self.y)
     }
 }
 

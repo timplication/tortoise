@@ -17,34 +17,34 @@
  */
 
 use crate::vec_math::Vec2;
-use crate::mat_math::Mat2;
 use crate::canvas_engine::Context;
-use std::f64::consts::{FRAC_PI_4};
+use std::f64::consts::{PI, FRAC_PI_3};
+use web_sys::console;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum Operation {
     Forward { distance: f64 },
-    Turn { radians: f64 }
+    Left { radians: f64 },
+    Right { radians: f64 }
 }
 
 pub struct Turtle {
     ops: Vec<Operation>,
     pos: Vec2,
     prev_pos: Vec2,
-    rot: Mat2
+    home: Vec2,
+    rot: f64
 }
 
 impl Turtle {
-    pub fn new(pos: Vec2, dir_rad: f64) -> Turtle {
-        let mut turtle = Turtle {
+    pub fn new(home: Vec2, dir_rad: f64) -> Turtle {
+        Turtle {
             ops: Vec::new(),
-            pos: pos,
-            prev_pos: pos,
-            rot: Mat2::new(0.0, 0.0, 0.0, 0.0)
-        };
-
-        turtle.turn(dir_rad);
-        turtle
+            pos: home,
+            prev_pos: home,
+            home: home,
+            rot: dir_rad
+        }
     }
 
     pub fn load(&mut self, mut program: Vec<char>, distance: f64) {
@@ -53,11 +53,9 @@ impl Turtle {
             match sym {
                 'A' => new_ops.push(Operation::Forward { distance }),
                 'B' => new_ops.push(Operation::Forward { distance }),
-                // Canvas coordinates are flipped for some ungodly reason so we
-                // are using unit circle math in australia style here.
-                '+' => new_ops.push(Operation::Turn { radians: 7.0 * FRAC_PI_4 }),
-                '-' => new_ops.push(Operation::Turn { radians: FRAC_PI_4 }),
-                _   => new_ops.push(Operation::Forward { distance: 1.0 })
+                '+' => new_ops.push(Operation::Left { radians: FRAC_PI_3 }),
+                '-' => new_ops.push(Operation::Right { radians: FRAC_PI_3 }),
+                _   => new_ops.push(Operation::Forward { distance: 0.0 })
             }
         }
 
@@ -72,11 +70,18 @@ impl Turtle {
                     self.forward(distance);
                     self.draw_line(ctx);
                 },
-                Operation::Turn { radians } => {
-                    self.turn(radians);
-                }
+                Operation::Left { radians } => self.turn(radians),
+                Operation::Right { radians } => self.turn(-radians)
             }
         }
+
+        self.ops.clear();
+        self.return_home();
+    }
+
+    fn return_home(&mut self) {
+        self.prev_pos = self.home;
+        self.pos = self.home
     }
 
     fn draw_line(&self, ctx: &mut Context) {
@@ -87,15 +92,15 @@ impl Turtle {
     }
 
     fn turn(&mut self, radians: f64) {
-        self.rot = Mat2::new(
-            radians.cos(), -radians.sin(),
-            radians.sin(), radians.cos()
-        )
+        // The canvas has a right-handed euclidian coordinate
+        // system, we therefor subtract the radians instead
+        // of add them, because this converts them from the
+        // left-handed system we're used to in math.
+        self.rot = (self.rot - radians).rem_euclid(2.0 * PI);
     }
 
     fn forward(&mut self, distance: f64) {
-        let transform = self.rot * distance;
         self.prev_pos = self.pos;
-        self.pos = self.rot * self.pos;
+        self.pos += Vec2::new(distance * self.rot.cos(), distance * self.rot.sin());
     }
 }
