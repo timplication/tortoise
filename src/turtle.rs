@@ -19,7 +19,6 @@
 use crate::vec_math::Vec2;
 use crate::canvas_engine::Context;
 use std::f64::consts::{PI, FRAC_PI_3};
-use web_sys::console;
 
 #[derive(Clone, Copy, Debug)]
 enum Operation {
